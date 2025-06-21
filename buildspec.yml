@@ -6,9 +6,6 @@ env:
     REACT_APP_API_SERVICE_URL: "http://http://flask-react-alb2-146681863.us-east-1.elb.amazonaws.com"
 
 phases:
-  install:
-    runtime-versions:
-      dotnet: 10.0-preview
   pre_build:
     commands:
       - echo logging in to ecr...
