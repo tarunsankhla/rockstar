@@ -1,0 +1,69 @@
+#version: '3.8'
+# see here https://docs.docker.com/compose/compose-file/compose-versioning/
+version: '3.1'
+
+services:
+
+  api:
+    build:
+      context: ./jukeboxapi
+      dockerfile: Dockerfile
+    #~dk getting rid of this because this hides all the files in /usr/src/app since I didn't specify the
+    # local folder on the host as a shared folder with virtualbox! Also, we don't need a shared volume here
+    #volumes:
+    #  - './services/users:/usr/src/app'
+    ports:
+      - 8010:8080
+    environment:
+      - DOTNET_ENV=development
+      - ASPNETCORE_HTTP_PORTS=8080
+    networks:
+      - api_network
+
+  webapp:
+    stdin_open: true
+    build:
+      context: ./jukeboxmvc
+      dockerfile: Dockerfile
+    # ~dk same issue..
+    #volumes:
+      #- './jukeboxmvc:/usr/src/app'
+      #- '/usr/src/app/node_modules'
+    ports:
+      - 8011:8081
+    environment:
+      - DOTNET_ENV=development
+      - WEBAPP_API_NETWORK=api_network
+      - WEBAPP_API_PORT=8010
+      - WEBAPP_API_SERVICE_URL=${WEBAPP_API_SERVICE_URL}
+      - ASPNETCORE_HTTP_PORTS=8081
+    depends_on:
+      - api
+    # specifies frontend and backend as the networks the fe service will have access to
+    networks:
+      - webapp_network
+      - api_network
+      
+# bridge networks to allow the containers to communicate with each other
+networks:
+  webapp_network:
+    driver: bridge
+  api_network:
+    driver: bridge
+
+# once both containers are running with docker-compose up, open a browser at 
+# http://localhost:8011/rockstar/faith?api=http://localhost:8010/rockstar/faith
+# and then click the `Get Lyrics` button
+# Note that if the query string is missing from your URL and you click that button,
+# you will see two george michael's instead of your lyrics.
+# Note also that you can change lyrics with the 
+# http://localhost:8011/rockStar/faith?api=http://localhost:8010/rockstar/rocketman URL
+# to see Elton's lyrics instead.
+
+# Also note that arm64-created and amd64-created container images don't play nicely
+# with each other. Often, amd64-created containers will run on arm64 platforms but
+# not vice versa. If you are running on an arm64 platform and creating images for Windows
+# patforms for example, you may need to specify the platform in the docker-compose.yml file, 
+# like this:
+#    platform: linux/amd64
+# That's a failure of the dockerization philosophy, not a failure of the code.
