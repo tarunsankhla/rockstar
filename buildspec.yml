@@ -28,7 +28,7 @@ phases:
       - >
         docker build \
           -f jukeboxmvc/Dockerfile \
-          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/rockstar/mvc:prod \
+          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/rockstar/webapp:prod \
           --build-arg DOTNET_ENV=production \
           --build-arg ASPNETCORE_HTTP_PORTS=8081 \
           --build-arg WEBAPP_API_SERVICE_URL=${WEBAPP_API_SERVICE_URL} \
@@ -37,4 +37,4 @@ phases:
     commands:
     - echo pushing prod images to ecr...
     - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/rockstar/api:prod
-    - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/rockstar/mvc:prod
+    - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/rockstar/webapp:prod
