@@ -4,6 +4,7 @@ env:
   variables:
     AWS_REGION_2: "us-east-2"
     REACT_APP_API_SERVICE_URL: "http://http://flask-react-alb2-146681863.us-east-1.elb.amazonaws.com"
+    WEBAPP_API_SERVICE_URL: "http://rockstar-alb2-146681863.us-east-1.elb.amazonaws.com"
 
 phases:
   pre_build:
@@ -19,18 +20,21 @@ phases:
       - echo building prod images...
       - >
         docker build \
-          -f be/Dockerfile \
-          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/twtr-be:prod \
-          ./be
+          -f jukeboxapi/Dockerfile \
+          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/rockstar/api:prod \
+          --build-arg DOTNET_ENV=production \
+          --build-arg ASPNETCORE_HTTP_PORTS=8080 \
+          ./jukeboxapi
       - >
         docker build \
-          -f fe/Dockerfile \
-          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/twtr-fe:prod \
-          --build-arg NODE_ENV=production \
-          --build-arg REACT_APP_API_SERVICE_URL=$REACT_APP_API_SERVICE_URL \
-          ./fe
+          -f jukeboxmvc/Dockerfile \
+          -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/rockstar/mvc:prod \
+          --build-arg DOTNET_ENV=production \
+          --build-arg ASPNETCORE_HTTP_PORTS=8081 \
+          --build-arg WEBAPP_API_SERVICE_URL=${WEBAPP_API_SERVICE_URL} \
+          ./jukeboxmvc
   post_build:
     commands:
     - echo pushing prod images to ecr...
-    - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/twtr-be:prod
-    - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/twtr-fe:prod
+    - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/rockstar/api:prod
+    - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/rockstar/mvc:prod
